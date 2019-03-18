@@ -1,0 +1,106 @@
+<html lang="ru">
+<head>
+	<meta charset="utf-8" />
+	<title>{{title}}</title>
+	<link rel="stylesheet" href="bootstrap/bootstrap-grid-3.3.1.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+<style>
+	*::-webkit-input-placeholder {
+	color: #666;
+	opacity: 1;
+}
+*:-moz-placeholder {
+	color: #666;
+	opacity: 1;
+}
+*::-moz-placeholder {
+	color: #666;
+	opacity: 1;
+}
+*:-ms-input-placeholder {
+	color: #666;
+	opacity: 1;
+}
+
+body {
+	background-color: #d7dad9;
+}
+.header{
+	font-family: IsadoraBold;
+	text-align: center;
+	font-size: 30px;
+	}
+.top_line{
+	background-color: gray;
+	color: white;
+}
+.bottom_line{
+	background-color: gray;
+	color: white;
+}
+.top_name{
+	float: left;
+	list-style-type: none;
+}
+.top_nav{
+	float: right;
+}
+.top_nav ul li{
+	list-style-type: none;
+	display: inline-block;
+	vertical-align: center;
+	padding-right: 40px;
+}
+.top_nav a{
+	color: white;
+}
+.top_nav a:hover{
+	color: #78B0AE;
+}
+
+	</style>
+
+
+<body>
+<div class="top_line">
+	<div class="container">
+		<div class="col-md-12">
+			<div class="row">
+			 <ul class="hidden-md hidden-lg hidden-xl top_name">
+			 	<li><h1>JFE</h1></li>
+			 </ul>
+				<div class="top_name hidden-sm hidden-xs">
+					<h1>Jobs For Everybody</h1>
+				</div>
+				<div class="top_nav">
+					<ul>
+						<li><a href="#"><h4>Главная</h4></a></li>
+						<li><a href="#"><h4>Заметки</h4></a></li>
+						<li><a href="#"><h4>Рассчет средней З/П</h4></a></li>
+						{% if "username" in session %}
+						<li><a class="navbar-brand" href="/logout">{{session['username']}}</a></li>>
+          				{% endif %}
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="container">
+	<div class="col-md-12">
+		{% block content %}{% endblock %}
+	</div>
+</div>
+<div class="bottom_line">
+	<div class="container">
+		<div class="col-md-12">
+			<div class="row">
+				<center><h3>Jobs For Everybody</h3></center>
+				<center><h4>MartsinovichDanya copyright 2019</h4></center>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>
