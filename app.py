@@ -1,27 +1,43 @@
 import sqlite3
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, PasswordField
-from wtforms.validators import DataRequired, InputRequired, EqualTo
 from flask import Flask, render_template, redirect,\
     session, jsonify, make_response, request
 import os.path
-import hashlib
 from datetime import datetime
+
+from Forms import LoginForm
+from Models import UserModel, NoteModel
+from DB import DB
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
-
-
-class LoginForm(FlaskForm):
-    username = StringField('Логин', validators=[DataRequired()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
-    submit = SubmitField('Войти')
+DATABASE = 'jfe.db'
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     form = LoginForm()
+    if form.validate_on_submit():
+        user_name = form.username.data
+        password = form.password.data
+        user_model = UserModel(db.get_connection())
+        exists = user_model.exists(user_name, password)
+        if exists[0]:
+            session['username'] = user_name
+            session['user_id'] = exists[1]
+            session['admin_privilege'] = exists[2]
+        return redirect("/index")
     return render_template('login.html', title='Авторизация', form=form)
 
 
-app.run(port=8080, host='127.0.0.1')
+if __name__ == '__main__':
+    if not os.path.exists(DATABASE):
+        db = DB(DATABASE)
+        um = UserModel(db.get_connection())
+        um.init_table()
+        um.insert('test1', 'test1')
+        um.insert('test2', 'test2')
+        nm = NoteModel(db.get_connection())
+        nm.init_table()
+    else:
+        db = DB(DATABASE)
+    app.run(port=8080, host='127.0.0.1')
