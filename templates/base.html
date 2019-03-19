@@ -75,10 +75,10 @@ body {
 				</div>
 				<div class="top_nav">
 					<ul>
+						{% if "username" in session %}
 						<li><a href="#"><h4>Главная</h4></a></li>
 						<li><a href="#"><h4>Заметки</h4></a></li>
 						<li><a href="#"><h4>Рассчет средней З/П</h4></a></li>
-						{% if "username" in session %}
 						<li><a class="navbar-brand" href="/logout">{{session['username']}}</a></li>>
           				{% endif %}
 					</ul>
