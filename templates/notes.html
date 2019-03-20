@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Добавить заметку</h1>
+    <form action="" method="post" novalidate>
+        <p>
+            {{ form.content.label }}<br>
+            {{ form.content }}<br>
+            {% for error in form.content.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+    {% for item in notes %}
+        <div class="alert alert-dark" role="alert">
+            <div>{{item[1]}}</div>
+            <a href="/delete_news/{{item[0]}}">Удалить заметку</a>
+        </div>
+    {% endfor %}
+{% endblock %}

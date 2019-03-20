@@ -4,7 +4,7 @@ from flask import Flask, render_template, redirect,\
 import os.path
 from datetime import datetime
 
-from Forms import LoginForm
+from Forms import LoginForm, AddNoteForm
 from Models import UserModel, NoteModel
 from DB import DB
 
@@ -27,6 +27,23 @@ def login():
             session['admin_privilege'] = exists[2]
         return redirect("/index")
     return render_template('login.html', title='Авторизация', form=form)
+
+
+@app.route('/notes', methods=['GET', 'POST'])
+def notes():
+    if 'username' not in session:
+        return redirect('/login')
+    form = AddNoteForm()
+    nm = NoteModel(db.get_connection())
+    notes = nm.get_all(session['user_id'])
+    if form.validate_on_submit():
+        content = form.content.data
+        print(content)
+        nm.insert(content, session['user_id'])
+        return redirect("/notes")
+    print(notes)
+    return render_template('notes.html', username=session['username'],
+                           notes=notes, title="Заметки", form=form)
 
 
 if __name__ == '__main__':
