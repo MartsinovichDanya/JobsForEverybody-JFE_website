@@ -35,15 +35,22 @@ def notes():
         return redirect('/login')
     form = AddNoteForm()
     nm = NoteModel(db.get_connection())
-    notes = nm.get_all(session['user_id'])
+    notes_list = list(reversed(nm.get_all(session['user_id'])))
     if form.validate_on_submit():
         content = form.content.data
-        print(content)
         nm.insert(content, session['user_id'])
         return redirect("/notes")
-    print(notes)
     return render_template('notes.html', username=session['username'],
-                           notes=notes, title="Заметки", form=form)
+                           notes=notes_list, title="Заметки", form=form)
+
+
+@app.route('/delete_note/<int:news_id>', methods=['GET'])
+def delete_note(news_id):
+    if 'username' not in session:
+        return redirect('/login')
+    nm = NoteModel(db.get_connection())
+    nm.delete(news_id)
+    return redirect("/notes")
 
 
 if __name__ == '__main__':

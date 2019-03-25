@@ -1,23 +1,69 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <style>
+    .note{
+        font-size: 17px;
+        word-wrap: break-word;
+    }
+    p input{
+        border-width: 2px;
+	    border-color: gray;
+	    border-radius: 30px;
+	    padding: 15px 10px;
+	    margin-top: 15px;
+	    margin-bottom: 15px;
+	    background-color: 8F8E89;
+	    width: 30%;
+	}
+    p textarea{
+        border-width: 2px;
+	    border-color: gray;
+	    border-radius: 30px;
+	    padding: 15px 10px;
+	    margin-top: 15px;
+	    margin-bottom: 15px;
+	    background-color: 8F8E89;
+	    width: 80%;
+	}
+	p label{
+	    margin-top: 20px;
+	}
+	a{
+	    font-size: 13px;
+	    color: 6E6D68;
+    }
+    a:hover{
+	    font-size: 13px;
+	    color: #78B0AE;
+    }
+    </style>
     <h1>Добавить заметку</h1>
-    <form action="" method="post" novalidate>
-        <p>
-            {{ form.content.label }}<br>
-            {{ form.content }}<br>
-            {% for error in form.content.errors %}
-                <div class="alert alert-danger" role="alert">
-                    {{ error }}
-                </div>
-            {% endfor %}
-        </p>
-        <p>{{ form.submit() }}</p>
-    </form>
-    {% for item in notes %}
-        <div class="alert alert-dark" role="alert">
-            <div>{{item[1]}}</div>
-            <a href="/delete_news/{{item[0]}}">Удалить заметку</a>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <form action="" method="post" novalidate>
+                    {{ form.hidden_tag() }}
+                    <p>
+                        {{ form.content.label }}<br>
+                        {{ form.content }}<br>
+                        {% for error in form.content.errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </p>
+                    <p>{{ form.submit() }}</p>
+                </form>
+            </div>
+            <div class="col-md-6">
+                {% for item in notes %}
+                    <div class="alert alert-warning" role="alert">
+                        <div class="note"><p>{{item[1]}}</p></div>
+                        <a href="/delete_note/{{item[0]}}">Удалить заметку</a>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-    {% endfor %}
+    </div>
 {% endblock %}
