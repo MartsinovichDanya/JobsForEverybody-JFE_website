@@ -4,7 +4,7 @@ from flask import Flask, render_template, redirect,\
 import os.path
 from datetime import datetime
 
-from Forms import LoginForm, AddNoteForm
+from Forms import add_user, LoginForm, AddNoteForm, RegistrationForm
 from Models import UserModel, NoteModel
 from DB import DB
 
@@ -15,6 +15,8 @@ DATABASE = 'jfe.db'
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
+    if 'username' in session:
+        return redirect('/index')
     form = LoginForm()
     if form.validate_on_submit():
         user_name = form.username.data
@@ -25,8 +27,30 @@ def login():
             session['username'] = user_name
             session['user_id'] = exists[1]
             session['admin_privilege'] = exists[2]
-        return redirect("/index")
+            return redirect("/index")
     return render_template('login.html', title='Авторизация', form=form)
+
+
+@app.route('/logout')
+def logout():
+    session.pop('username', 0)
+    session.pop('user_id', 0)
+    return redirect('/login')
+
+
+@app.route('/registration', methods=['POST', 'GET'])
+def registration():
+    if 'username' in session:
+        return redirect('/index')
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user_name = form.username.data
+        password = form.password.data
+        user_model = UserModel(db.get_connection())
+        user_model.insert(user_name, password)
+        add_user([el[1] for el in user_model.get_all()])
+        return redirect('/login')
+    return render_template('registration.html', title='Регистрация', form=form)
 
 
 @app.route('/notes', methods=['GET', 'POST'])
@@ -60,8 +84,11 @@ if __name__ == '__main__':
         um.init_table()
         um.insert('test1', 'test1')
         um.insert('test2', 'test2')
+        users = [el[1] for el in um.get_all()]
         nm = NoteModel(db.get_connection())
         nm.init_table()
     else:
         db = DB(DATABASE)
+        um = UserModel(db.get_connection())
+        users = [el[1] for el in um.get_all()]
     app.run(port=8080, host='127.0.0.1')

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <style>
+    .button{
+        width: 35%;
+    }
+    p input{
+        border-width: 2px;
+	    border-color: gray;
+	    border-radius: 30px;
+	    padding: 15px 10px;
+	    margin-top: 15px;
+	    margin-bottom: 15px;
+	    background-color: 8F8E89;
+	    width: 40%;
+	}
+	p label{
+	    margin-top: 20px;
+	}
+	form a{
+	    font-size: 20px;
+	    color: 6E6D68;
+    }
+    form a:hover{
+	    font-size: 20px;
+	    color: #78B0AE;
+    }
+    </style>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.username.label }}<br>
+            {{ form.username }}<br>
+            {% for error in form.username.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password.label }}<br>
+            {{ form.password }}<br>
+            {% for error in form.password.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.confirm.label }}<br>
+            {{ form.confirm }}<br>
+            {% for error in form.confirm.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p class="button">{{ form.submit() }}</p>
+    </form>
+{% endblock %}
