@@ -1,11 +1,9 @@
-import sqlite3
 from flask import Flask, render_template, redirect,\
-    session, jsonify, make_response, request
+    session
 import os.path
-from datetime import datetime
 
 from Forms import add_user, LoginForm, AddNoteForm, RegistrationForm
-from Models import UserModel, NoteModel
+from Models import UserModel, NoteModel, ParamModel
 from DB import DB
 
 app = Flask(__name__)
@@ -84,11 +82,10 @@ if __name__ == '__main__':
         um.init_table()
         um.insert('test1', 'test1')
         um.insert('test2', 'test2')
-        users = [el[1] for el in um.get_all()]
         nm = NoteModel(db.get_connection())
         nm.init_table()
+        pm = ParamModel(db.get_connection())
+        pm.init_table()
     else:
         db = DB(DATABASE)
-        um = UserModel(db.get_connection())
-        users = [el[1] for el in um.get_all()]
     app.run(port=8080, host='127.0.0.1')

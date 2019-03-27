@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, PasswordField, ValidationError
+from wtforms import StringField, SubmitField, TextAreaField, PasswordField, SelectField, ValidationError
 from wtforms.validators import DataRequired, InputRequired, EqualTo
 
 users = ['test1', 'test2', 'admin']
@@ -23,7 +23,6 @@ class AddNoteForm(FlaskForm):
 
 
 def login_unique_check(form, field):
-    print(users)
     if field.data in users:
         raise ValidationError('Пользователь с таким логином уже существует')
 
@@ -36,3 +35,9 @@ class RegistrationForm(FlaskForm):
                                                            message='Пароли должны совпадать')])
     confirm = PasswordField('Повторите пароль', validators=[DataRequired(message='Это обязательное поле')])
     submit = SubmitField('Зарегистрироваться')
+
+
+class ParamForm(FlaskForm):
+    search_words = StringField('Ключевые слова для поиска', validators=[DataRequired(message='Это обязательное поле')])
+    search_area = StringField('Ключевые слова для поиска', validators=[DataRequired(message='Это обязательное поле')])
+    submit = SubmitField('Сохранить настройки')

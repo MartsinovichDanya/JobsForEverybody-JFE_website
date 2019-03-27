@@ -22,9 +22,13 @@
 	color: #666;
 	opacity: 1;
 }
-
+html {
+  	position: relative;
+  	min-height: 100%;
+}
 body {
-	background-color: #d7dad9;
+  	margin-bottom: 60px;
+  	background-color: #d7dad9;
 }
 .header{
 	font-family: IsadoraBold;
@@ -59,7 +63,7 @@ body {
 	color: #78B0AE;
 }
 
-	</style>
+</style>
 
 
 <body>
@@ -76,9 +80,9 @@ body {
 				<div class="top_nav">
 					<ul>
 						{% if "username" in session %}
-						<li><a class="navbar-brand" href="#"><h4>Главная</h4></a></li>
-						<li><a class="navbar-brand" href="#"><h4>Заметки</h4></a></li>
-						<li><a class="navbar-brand" href="#"><h4>Рассчет средней З/П</h4></a></li>
+						<li><a class="navbar-brand" href="/"><h4>Главная</h4></a></li>
+						<li><a class="navbar-brand" href="/notes"><h4>Заметки</h4></a></li>
+						<li><a class="navbar-brand" href="/sred_zp"><h4>Рассчет средней З/П</h4></a></li>
 						<li><a class="navbar-brand" href="/logout"><h4>{{session['username']}}</h4></a></li>
           				{% endif %}
 					</ul>
@@ -92,12 +96,14 @@ body {
 		{% block content %}{% endblock %}
 	</div>
 </div>
-<div class="bottom_line">
-	<div class="container">
-		<div class="col-md-12">
-			<div class="row">
-				<center><h3>Jobs For Everybody</h3></center>
-				<center><h4>MartsinovichDanya copyright 2019</h4></center>
+<div class="navbar-fixed-bottom">
+	<div class="bottom_line">
+		<div class="container">
+			<div class="col-md-12">
+				<div class="row">
+					<center><h3>Jobs For Everybody</h3></center>
+					<center><h4>MartsinovichDanya copyright 2019</h4></center>
+				</div>
 			</div>
 		</div>
 	</div>

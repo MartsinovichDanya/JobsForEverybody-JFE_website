@@ -83,9 +83,9 @@ class NoteModel:
         rows = cursor.fetchall()
         return rows
 
-    def delete(self, news_id):
+    def delete(self, note_id):
         cursor = self.connection.cursor()
-        cursor.execute('''DELETE FROM notes WHERE id = ?''', (str(news_id)))
+        cursor.execute('''DELETE FROM notes WHERE id = ?''', (str(note_id)))
         cursor.close()
         self.connection.commit()
 
@@ -106,27 +106,53 @@ class ParamModel:
 
     def init_table(self):
         cursor = self.connection.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS notes 
+        cursor.execute('''CREATE TABLE IF NOT EXISTS params 
                             (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                             content VARCHAR(1000),
+                             search_words VARCHAR(1000),
+                             area VARCHAR(1000),
                              user_id INTEGER
                              )''')
         cursor.close()
         self.connection.commit()
 
-    def insert(self, content, user_id):
+    def insert(self, search_words, area, user_id):
         cursor = self.connection.cursor()
-        cursor.execute('''INSERT INTO notes 
-                          (content, user_id) 
-                          VALUES (?,?)''', (content, str(user_id)))
+        cursor.execute('''INSERT INTO params 
+                          (search_words, area, user_id) 
+                          VALUES (?,?)''', (search_words, area, str(user_id)))
         cursor.close()
         self.connection.commit()
 
-    def get(self, news_id):
+    def get(self, user_id):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM notes WHERE id = ?", (str(news_id)))
+        cursor.execute("SELECT * FROM params WHERE user_id = ?", (str(user_id)))
         row = cursor.fetchone()
         return row
+
+
+class VacModel:
+    def __init__(self, connection):
+        self.connection = connection
+
+    def init_table(self):
+        cursor = self.connection.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS vacancies 
+                            (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                             name VARCHAR(100),
+                             date VARCHAR(20),
+                             link VARCHAR(1000),
+                             user_id INTEGER
+                             )''')
+        cursor.close()
+        self.connection.commit()
+
+    def insert(self, name, date, link, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute('''INSERT INTO vacancies 
+                          (name, date, link, user_id) 
+                          VALUES (?,?,?,?)''', (name, date, link, str(user_id)))
+        cursor.close()
+        self.connection.commit()
 
     def get_all(self, user_id=None):
         cursor = self.connection.cursor()
@@ -138,9 +164,9 @@ class ParamModel:
         rows = cursor.fetchall()
         return rows
 
-    def delete(self, news_id):
+    def delete(self, vac_id):
         cursor = self.connection.cursor()
-        cursor.execute('''DELETE FROM notes WHERE id = ?''', (str(news_id)))
+        cursor.execute('''DELETE FROM notes WHERE id = ?''', (str(vac_id)))
         cursor.close()
         self.connection.commit()
 
