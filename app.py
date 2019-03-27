@@ -2,8 +2,8 @@ from flask import Flask, render_template, redirect,\
     session
 import os.path
 
-from Forms import add_user, LoginForm, AddNoteForm, RegistrationForm, ParamForm
-from Models import UserModel, NoteModel, ParamModel
+from Forms import add_user, LoginForm, AddNoteForm, RegistrationForm, ParamForm, MoreButton
+from Models import UserModel, NoteModel, ParamModel, VacModel
 from DB import DB
 
 app = Flask(__name__)
@@ -90,6 +90,22 @@ def settings():
             pm.update(search_words, search_area, session['user_id'])
         return redirect('/index')
     return render_template('settings.html', title='Настройки поиска', form=form)
+
+
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET', 'POST'])
+def index():
+    if 'username' not in session:
+        return redirect('/login')
+    form = MoreButton()
+    vm = VacModel(db.get_connection())
+    # vacancies_list =
+    # if form.validate_on_submit():
+    #     content = form.content.data
+    #     nm.insert(content, session['user_id'])
+    #     return redirect("/notes")
+    return render_template('index.html', username=session['username'],
+                           vacancies=[], title="Главная", form=form)
 
 
 if __name__ == '__main__':
