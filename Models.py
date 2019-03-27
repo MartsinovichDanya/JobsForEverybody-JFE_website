@@ -16,12 +16,12 @@ class UserModel:
         cursor.close()
         self.connection.commit()
 
-    def insert(self, user_name, password):
+    def insert(self, user_name, password, admin=False):
         cursor = self.connection.cursor()
         cursor.execute('''INSERT INTO users 
                           (user_name, password_hash, admin) 
                           VALUES (?,?,?)''',
-                       (user_name, hashlib.md5(bytes(password, encoding='utf8')).hexdigest(), False))
+                       (user_name, hashlib.md5(bytes(password, encoding='utf8')).hexdigest(), admin))
         cursor.close()
         self.connection.commit()
 
@@ -67,9 +67,9 @@ class NoteModel:
         cursor.close()
         self.connection.commit()
 
-    def get(self, news_id):
+    def get(self, note_id):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM notes WHERE id = ?", (str(news_id)))
+        cursor.execute("SELECT * FROM notes WHERE id = ?", (str(note_id)))
         row = cursor.fetchone()
         return row
 
@@ -119,7 +119,7 @@ class ParamModel:
         cursor = self.connection.cursor()
         cursor.execute('''INSERT INTO params 
                           (search_words, area, user_id) 
-                          VALUES (?,?)''', (search_words, area, str(user_id)))
+                          VALUES (?,?,?)''', (search_words, area, str(user_id)))
         cursor.close()
         self.connection.commit()
 
@@ -128,6 +128,15 @@ class ParamModel:
         cursor.execute("SELECT * FROM params WHERE user_id = ?", (str(user_id)))
         row = cursor.fetchone()
         return row
+
+    def update(self, search_words, area, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute('''UPDATE params SET 
+                            search_words = ?,
+                            area = ?
+                            WHERE user_id = ?''', (search_words, area, str(user_id)))
+        cursor.close()
+        self.connection.commit()
 
 
 class VacModel:
@@ -157,25 +166,25 @@ class VacModel:
     def get_all(self, user_id=None):
         cursor = self.connection.cursor()
         if user_id:
-            cursor.execute("SELECT * FROM notes WHERE user_id = ?",
+            cursor.execute("SELECT * FROM vacancies WHERE user_id = ?",
                            (str(user_id)))
         else:
-            cursor.execute("SELECT * FROM notes")
+            cursor.execute("SELECT * FROM vacancies")
         rows = cursor.fetchall()
         return rows
 
     def delete(self, vac_id):
         cursor = self.connection.cursor()
-        cursor.execute('''DELETE FROM notes WHERE id = ?''', (str(vac_id)))
+        cursor.execute('''DELETE FROM vacancies WHERE id = ?''', (str(vac_id)))
         cursor.close()
         self.connection.commit()
 
     def get_count(self, user_id=None):
         cursor = self.connection.cursor()
         if user_id:
-            cursor.execute("SELECT COUNT(*) FROM notes WHERE user_id = ?",
+            cursor.execute("SELECT COUNT(*) FROM vacancies WHERE user_id = ?",
                            (str(user_id)))
         else:
-            cursor.execute("SELECT COUNT(*) FROM notes")
+            cursor.execute("SELECT COUNT(*) FROM vacancies")
         rows = cursor.fetchone()
         return rows[0]

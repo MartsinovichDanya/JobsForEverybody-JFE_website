@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect,\
     session
 import os.path
 
-from Forms import add_user, LoginForm, AddNoteForm, RegistrationForm
+from Forms import add_user, LoginForm, AddNoteForm, RegistrationForm, ParamForm
 from Models import UserModel, NoteModel, ParamModel
 from DB import DB
 
@@ -66,13 +66,30 @@ def notes():
                            notes=notes_list, title="Заметки", form=form)
 
 
-@app.route('/delete_note/<int:news_id>', methods=['GET'])
-def delete_note(news_id):
+@app.route('/delete_note/<int:note_id>', methods=['GET'])
+def delete_note(note_id):
     if 'username' not in session:
         return redirect('/login')
     nm = NoteModel(db.get_connection())
-    nm.delete(news_id)
+    nm.delete(note_id)
     return redirect("/notes")
+
+
+@app.route('/settings', methods=['POST', 'GET'])
+def settings():
+    if 'username' not in session:
+        return redirect('/login')
+    form = ParamForm()
+    if form.validate_on_submit():
+        search_words = form.search_words.data
+        search_area = form.search_area.data
+        pm = ParamModel(db.get_connection())
+        if not pm.get(session['user_id']):
+            pm.insert(search_words, search_area, session['user_id'])
+        else:
+            pm.update(search_words, search_area, session['user_id'])
+        return redirect('/index')
+    return render_template('settings.html', title='Настройки поиска', form=form)
 
 
 if __name__ == '__main__':
@@ -82,6 +99,7 @@ if __name__ == '__main__':
         um.init_table()
         um.insert('test1', 'test1')
         um.insert('test2', 'test2')
+        um.insert('admin', 'admin', True)
         nm = NoteModel(db.get_connection())
         nm.init_table()
         pm = ParamModel(db.get_connection())

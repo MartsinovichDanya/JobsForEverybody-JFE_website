@@ -39,5 +39,5 @@ class RegistrationForm(FlaskForm):
 
 class ParamForm(FlaskForm):
     search_words = StringField('Ключевые слова для поиска', validators=[DataRequired(message='Это обязательное поле')])
-    search_area = StringField('Ключевые слова для поиска', validators=[DataRequired(message='Это обязательное поле')])
+    search_area = StringField('Населенный пункт', validators=[DataRequired(message='Это обязательное поле')])
     submit = SubmitField('Сохранить настройки')
