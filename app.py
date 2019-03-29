@@ -5,6 +5,7 @@ import os.path
 from Forms import add_user, LoginForm, AddNoteForm, RegistrationForm, ParamForm, MoreButton
 from Models import UserModel, NoteModel, ParamModel, VacModel
 from DB import DB
+from API_kicker import get_vac
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -88,6 +89,8 @@ def settings():
             pm.insert(search_words, search_area, session['user_id'])
         else:
             pm.update(search_words, search_area, session['user_id'])
+        vm = VacModel(db.get_connection())
+        get_vac(search_words, search_area)
         return redirect('/index')
     return render_template('settings.html', title='Настройки поиска', form=form)
 
@@ -99,13 +102,13 @@ def index():
         return redirect('/login')
     form = MoreButton()
     vm = VacModel(db.get_connection())
-    # vacancies_list =
+    vacancies_list = vm.get_all(session['user_id'])
     # if form.validate_on_submit():
     #     content = form.content.data
     #     nm.insert(content, session['user_id'])
     #     return redirect("/notes")
     return render_template('index.html', username=session['username'],
-                           vacancies=[], title="Главная", form=form)
+                           vacancies=vacancies_list, title="Главная", form=form)
 
 
 if __name__ == '__main__':
@@ -120,6 +123,8 @@ if __name__ == '__main__':
         nm.init_table()
         pm = ParamModel(db.get_connection())
         pm.init_table()
+        vm = VacModel(db.get_connection())
+        vm.init_table()
     else:
         db = DB(DATABASE)
     app.run(port=8080, host='127.0.0.1')
