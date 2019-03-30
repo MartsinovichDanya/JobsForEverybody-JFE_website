@@ -57,7 +57,7 @@ class UserModel:
         cursor.execute("SELECT * FROM users WHERE user_name = ? AND password_hash = ?",
                        (user_name, hashlib.md5(bytes(password, encoding='utf8')).hexdigest()))
         row = cursor.fetchone()
-        return (True, row[0], row[-1]) if row else (False,)
+        return (True, row[0], row[3]) if row else (False,)
 
 
 class NoteModel:

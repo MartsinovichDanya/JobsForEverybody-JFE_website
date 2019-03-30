@@ -35,6 +35,7 @@ def login():
 def logout():
     session.pop('username', 0)
     session.pop('user_id', 0)
+    session.pop('admin_privilege', 0)
     return redirect('/login')
 
 
@@ -113,10 +114,11 @@ def index():
     vm = VacModel(db.get_connection())
     vacancies_list = vm.get_all(session['user_id'])
     vacancies_list = sorted(vacancies_list, key=lambda n: -int(n[4].replace('-', '')))
+    print(vacancies_list)
     if form.validate_on_submit():
         params = pm.get(session['user_id'])
         vac_list = get_vac(params[1], params[2])
-        exist_vac = [el[0] for el in vm.get_all(session['user_id'])]
+        exist_vac = [el[1] for el in vm.get_all(session['user_id'])]
         for el in vac_list:
             if int(el[0]) not in exist_vac:
                 vm.insert(*el, user_id=session['user_id'])

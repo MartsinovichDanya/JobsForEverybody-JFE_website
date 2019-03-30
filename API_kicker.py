@@ -25,11 +25,15 @@ def get_vac(search, area):
                 if not el["salary"]['currency']:
                     if not el["salary"]["to"]:
                         salary = f'{el["salary"]["from"]} RUR'
+                    elif not el["salary"]["from"]:
+                        salary = f'{el["salary"]["to"]} RUR'
                     else:
                         salary = f'от {el["salary"]["from"]} до {el["salary"]["to"]} RUR'
                 else:
                     if not el["salary"]["to"]:
                         salary = f'{el["salary"]["from"]} {el["salary"]["currency"]}'
+                    elif not el["salary"]["from"]:
+                        salary = f'{el["salary"]["to"]} {el["salary"]["currency"]}'
                     else:
                         salary = f'от {el["salary"]["from"]} до {el["salary"]["to"]} {el["salary"]["currency"]}'
             result_list.append((id, name, emp_name, date, url, salary))
@@ -41,9 +45,9 @@ def count_sred_zp(search, area):
     all_zp = 0
     all_n = 0
 
-    for i in range(50):
+    for i in range(5):
         url = 'https://api.hh.ru/vacancies'
-        par = {'text': search, 'area': AREAS[area.lower()], 'per_page': '10', 'page': i}
+        par = {'text': search, 'area': AREAS[area.lower()], 'per_page': '100', 'page': i}
         req = requests.get(url, params=par)
         res = req.json()
         pages.append(res)
