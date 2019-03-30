@@ -2,10 +2,10 @@ from flask import Flask, render_template, redirect, session
 import os.path
 import json
 
-from Forms import LoginForm, AddNoteForm, RegistrationForm, ParamForm, MoreButton
+from Forms import LoginForm, AddNoteForm, RegistrationForm, ParamForm, MoreButton, CountButton
 from Models import UserModel, NoteModel, ParamModel, VacModel
 from DB import DB
-from API_kicker import get_vac
+from API_kicker import get_vac, count_sred_zp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -123,8 +123,8 @@ def index():
                            vacancies=vacancies_list, title="Главная", form=form)
 
 
-@app.route('/delete_vacancie/<int:vac_id>', methods=['GET'])
-def delete_vacancie(vac_id):
+@app.route('/delete_vacancy/<int:vac_id>', methods=['GET'])
+def delete_vacancy(vac_id):
     if 'username' not in session:
         return redirect('/login')
     vm = VacModel(db.get_connection())
@@ -173,6 +173,20 @@ def make_admin(user_id):
     um = UserModel(db.get_connection())
     um.make_admin(user_id)
     return redirect("/admin")
+
+
+@app.route('/sred_zp', methods=['GET', 'POST'])
+def sred_zp():
+    if 'username' not in session:
+        return redirect('/login')
+    pm = ParamModel(db.get_connection())
+    if not pm.get(session['user_id']):
+        return redirect('/settings')
+    params = pm.get(session['user_id'])
+    data = [params[1], params[2]]
+    data.append(count_sred_zp(params[1], params[2]))
+    return render_template('sred_zp.html', username=session['username'],
+                           data=data, title="Рассчет средней З/П")
 
 
 if __name__ == '__main__':
