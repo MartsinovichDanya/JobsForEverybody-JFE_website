@@ -1,8 +1,9 @@
 from flask import Flask, render_template, redirect,\
     session
 import os.path
+import json
 
-from Forms import add_user, LoginForm, AddNoteForm, RegistrationForm, ParamForm, MoreButton
+from Forms import LoginForm, AddNoteForm, RegistrationForm, ParamForm, MoreButton
 from Models import UserModel, NoteModel, ParamModel, VacModel
 from DB import DB
 from API_kicker import get_vac
@@ -42,12 +43,14 @@ def registration():
     if 'username' in session:
         return redirect('/index')
     form = RegistrationForm()
+    user_model = UserModel(db.get_connection())
+    all_users = [el[1] for el in user_model.get_all()]
+    with open("all_users.json", "w", encoding='utf8') as f:
+        json.dump(all_users, f)
     if form.validate_on_submit():
         user_name = form.username.data
         password = form.password.data
-        user_model = UserModel(db.get_connection())
         user_model.insert(user_name, password)
-        add_user([el[1] for el in user_model.get_all()])
         return redirect('/login')
     return render_template('registration.html', title='Регистрация', form=form)
 

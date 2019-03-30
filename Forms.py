@@ -1,15 +1,11 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, PasswordField, SelectField, ValidationError
-from wtforms.validators import DataRequired, InputRequired, EqualTo
+from wtforms import StringField, SubmitField, TextAreaField, PasswordField, ValidationError
+from wtforms.validators import DataRequired, InputRequired, EqualTo, AnyOf
 
-users = ['test1', 'test2', 'admin']
+import json
 
-
-def add_user(user_list):
-    for user in user_list:
-        if user not in users:
-            users.append(user)
-    print(users)
+with open("regioni.json", "r") as f:
+    VALID_AREAS = json.load(f).keys()
 
 
 class LoginForm(FlaskForm):
@@ -24,8 +20,15 @@ class AddNoteForm(FlaskForm):
 
 
 def login_unique_check(form, field):
-    if field.data in users:
+    with open("all_users.json", "r") as f:
+        all_users = json.load(f)
+    if field.data in all_users:
         raise ValidationError('Пользователь с таким логином уже существует')
+
+
+def area_check(form, field):
+    if field.data.lower() not in VALID_AREAS:
+        raise ValidationError('Такого населенного пункта не существует')
 
 
 class RegistrationForm(FlaskForm):
@@ -40,7 +43,8 @@ class RegistrationForm(FlaskForm):
 
 class ParamForm(FlaskForm):
     search_words = StringField('Ключевые слова для поиска', validators=[DataRequired(message='Это обязательное поле')])
-    search_area = StringField('Населенный пункт', validators=[DataRequired(message='Это обязательное поле')])
+    search_area = StringField('Населенный пункт', validators=[DataRequired(message='Это обязательное поле'),
+                                                              area_check])
     submit = SubmitField('Сохранить настройки')
 
 
