@@ -133,6 +133,49 @@ def delete_vacancie(vac_id):
     return redirect("/index")
 
 
+@app.route('/admin')
+def admin():
+    if 'username' not in session:
+        return redirect('/login')
+    if not session['admin_privilege']:
+        return redirect('/index')
+    um = UserModel(db.get_connection())
+    users = um.get_all()
+    user_data = []
+    for user in users:
+        user_data.append((user[0], user[1], user[3]))
+    return render_template('admin_page.html', username=session['username'],
+                           users=user_data, title="Страница администратора")
+
+
+@app.route('/delete_user/<int:user_id>', methods=['GET'])
+def delete_user(user_id):
+    if 'username' not in session:
+        return redirect('/login')
+    if not session['admin_privilege']:
+        return redirect('/index')
+    um = UserModel(db.get_connection())
+    pm = ParamModel(db.get_connection())
+    vm = VacModel(db.get_connection())
+    nm = NoteModel(db.get_connection())
+    um.delete(user_id)
+    pm.delete_for_user(user_id)
+    vm.delete_for_user(user_id)
+    nm.delete_for_user(user_id)
+    return redirect("/admin")
+
+
+@app.route('/make_admin/<int:user_id>', methods=['GET'])
+def make_admin(user_id):
+    if 'username' not in session:
+        return redirect('/login')
+    if not session['admin_privilege']:
+        return redirect('/index')
+    um = UserModel(db.get_connection())
+    um.make_admin(user_id)
+    return redirect("/admin")
+
+
 if __name__ == '__main__':
     if not os.path.exists(DATABASE):
         db = DB(DATABASE)

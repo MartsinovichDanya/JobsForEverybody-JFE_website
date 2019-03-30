@@ -16,6 +16,14 @@ class UserModel:
         cursor.close()
         self.connection.commit()
 
+    def make_admin(self, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute('''UPDATE users SET 
+                            admin = ?
+                            WHERE id = ?''', (True, str(user_id)))
+        cursor.close()
+        self.connection.commit()
+
     def insert(self, user_name, password, admin=False):
         cursor = self.connection.cursor()
         cursor.execute('''INSERT INTO users 
@@ -36,6 +44,12 @@ class UserModel:
         cursor.execute("SELECT * FROM users")
         rows = cursor.fetchall()
         return rows
+
+    def delete(self, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute('''DELETE FROM users WHERE id = ?''', (str(user_id)))
+        cursor.close()
+        self.connection.commit()
 
     def exists(self, user_name, password):
         cursor = self.connection.cursor()
@@ -89,6 +103,12 @@ class NoteModel:
         cursor.close()
         self.connection.commit()
 
+    def delete_for_user(self, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute('''DELETE FROM notes WHERE user_id = ?''', (str(user_id)))
+        cursor.close()
+        self.connection.commit()
+
     def get_count(self, user_id=None):
         cursor = self.connection.cursor()
         if user_id:
@@ -138,6 +158,12 @@ class ParamModel:
         cursor.close()
         self.connection.commit()
 
+    def delete_for_user(self, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute('''DELETE FROM params WHERE user_id = ?''', (str(user_id)))
+        cursor.close()
+        self.connection.commit()
+
 
 class VacModel:
     def __init__(self, connection):
@@ -178,6 +204,12 @@ class VacModel:
     def delete(self, vac_id):
         cursor = self.connection.cursor()
         cursor.execute('''DELETE FROM vacancies WHERE id = ?''', (str(vac_id)))
+        cursor.close()
+        self.connection.commit()
+
+    def delete_for_user(self, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute('''DELETE FROM vacancies WHERE user_id = ?''', (str(user_id)))
         cursor.close()
         self.connection.commit()
 

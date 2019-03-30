@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <style>
+	.del {
+	    color: #8B0000;
+	}
+	.del:hover {
+	    color: #FF0000;
+	}
+	.admin {
+	    color: green;
+	}
+    </style>
+    <div>
+        <h2>Управление пользователями</h2>
+        <table border="1">
+            {% for user in users %}
+                <tr>
+                    {% if user[2] == 1 %}
+                    <th><p class="admin">{{user[1]}}</p></th>
+                    {% else %}
+                    <th><p>{{user[1]}}</p></th>
+                    {% endif %}
+                    <th><a href="/make_admin/{{user[0]}}">Дать права администратора</a></th>
+                    <th><a class="del" href="/delete_user/{{user[0]}}">Удалить</a></th>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
