@@ -14,9 +14,10 @@ def get_vac(search, area):
     result_list = []
     for el in raw_data:
         if el['type']['id'] == 'open':
+            id = el['id']
             name = el['name']
             emp_name = el['employer']['name']
             date = el['published_at'][:10]
             url = el['alternate_url']
-            result_list.append((name, emp_name, date, url))
+            result_list.append((id, name, emp_name, date, url))
     return result_list

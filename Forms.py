@@ -9,6 +9,7 @@ def add_user(user_list):
     for user in user_list:
         if user not in users:
             users.append(user)
+    print(users)
 
 
 class LoginForm(FlaskForm):
