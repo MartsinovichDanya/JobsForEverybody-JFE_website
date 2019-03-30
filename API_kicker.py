@@ -19,7 +19,4 @@ def get_vac(search, area):
             date = el['published_at'][:10]
             url = el['alternate_url']
             result_list.append((name, emp_name, date, url))
-    print(result_list)
-
-
-get_vac('python разработчик', 'санкт-петербург')
+    return result_list

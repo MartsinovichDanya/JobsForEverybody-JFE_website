@@ -148,6 +148,7 @@ class VacModel:
         cursor.execute('''CREATE TABLE IF NOT EXISTS vacancies 
                             (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                              name VARCHAR(100),
+                             emp_name VARCHAR(100),
                              date VARCHAR(20),
                              link VARCHAR(1000),
                              user_id INTEGER
@@ -155,11 +156,11 @@ class VacModel:
         cursor.close()
         self.connection.commit()
 
-    def insert(self, name, date, link, user_id):
+    def insert(self, name, emp_name, date, link, user_id):
         cursor = self.connection.cursor()
         cursor.execute('''INSERT INTO vacancies 
-                          (name, date, link, user_id) 
-                          VALUES (?,?,?,?)''', (name, date, link, str(user_id)))
+                          (name, emp_name, date, link, user_id) 
+                          VALUES (?,?,?,?,?)''', (name, emp_name, date, link, str(user_id)))
         cursor.close()
         self.connection.commit()
 

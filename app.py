@@ -90,7 +90,9 @@ def settings():
         else:
             pm.update(search_words, search_area, session['user_id'])
         vm = VacModel(db.get_connection())
-        get_vac(search_words, search_area)
+        vac_list = get_vac(search_words, search_area)
+        for el in vac_list:
+            vm.insert(*el, user_id=session['user_id'])
         return redirect('/index')
     return render_template('settings.html', title='Настройки поиска', form=form)
 
@@ -103,12 +105,26 @@ def index():
     form = MoreButton()
     vm = VacModel(db.get_connection())
     vacancies_list = vm.get_all(session['user_id'])
-    # if form.validate_on_submit():
-    #     content = form.content.data
-    #     nm.insert(content, session['user_id'])
-    #     return redirect("/notes")
+    pm = ParamModel(db.get_connection())
+    if not pm.get(session['user_id']):
+        return redirect('/settings')
+    if form.validate_on_submit():
+        params = pm.get(session['user_id'])
+        vac_list = get_vac(params[1], params[2])
+        for el in vac_list:
+            vm.insert(*el, user_id=session['user_id'])
+        return redirect('/index')
     return render_template('index.html', username=session['username'],
                            vacancies=vacancies_list, title="Главная", form=form)
+
+
+@app.route('/delete_vacancie/<int:vac_id>', methods=['GET'])
+def delete_vacancie(vac_id):
+    if 'username' not in session:
+        return redirect('/login')
+    vm = VacModel(db.get_connection())
+    vm.delete(vac_id)
+    return redirect("/index")
 
 
 if __name__ == '__main__':

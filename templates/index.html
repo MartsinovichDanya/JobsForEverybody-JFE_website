@@ -12,6 +12,12 @@
 	    background-color: 8F8E89;
 	    width: 15%;
 	}
+	.del {
+	    color: #8B0000;
+	}
+	.del:hover {
+	    color: #FF0000;
+	}
 	form a{
 	    font-size: 20px;
 	    color: 6E6D68;
@@ -30,8 +36,13 @@
             <div class="container">
                 <div class="col-md-12">
                     <div class="alert alert-info" role="alert">
-                        <div><p>{{item[1]}}</p></div>
-                        <a href="/delete_vacancie/{{item[0]}}">Удалить заметку</a>
+                        <div>
+                            <h3>{{item[1]}}</h3>
+                            <p>Работодатель: {{item[2]}}</p>
+                            <p>Дата публикации: {{item[3]}}</p>
+                            <a href={{item[4]}}><h4>Ссылка</h4></a>
+                        </div>
+                        <a class="del" href="/delete_vacancie/{{item[0]}}">Удалить вакансию</a>
                     </div>
                 </div>
             </div>
