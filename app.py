@@ -1,5 +1,4 @@
-from flask import Flask, render_template, redirect,\
-    session
+from flask import Flask, render_template, redirect, session
 import os.path
 import json
 

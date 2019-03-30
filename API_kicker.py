@@ -19,5 +19,18 @@ def get_vac(search, area):
             emp_name = el['employer']['name']
             date = el['published_at'][:10]
             url = el['alternate_url']
-            result_list.append((id, name, emp_name, date, url))
+            if not el['salary']:
+                salary = 'не указана'
+            else:
+                if not el["salary"]['currency']:
+                    if not el["salary"]["to"]:
+                        salary = f'{el["salary"]["from"]} RUR'
+                    else:
+                        salary = f'от {el["salary"]["from"]} до {el["salary"]["to"]} RUR'
+                else:
+                    if not el["salary"]["to"]:
+                        salary = f'{el["salary"]["from"]} {el["salary"]["currency"]}'
+                    else:
+                        salary = f'от {el["salary"]["from"]} до {el["salary"]["to"]} {el["salary"]["currency"]}'
+            result_list.append((id, name, emp_name, date, url, salary))
     return result_list

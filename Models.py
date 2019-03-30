@@ -99,7 +99,7 @@ class NoteModel:
 
     def delete(self, note_id):
         cursor = self.connection.cursor()
-        cursor.execute('''DELETE FROM notes WHERE id = ?''', (str(note_id)))
+        cursor.execute('''DELETE FROM notes WHERE id = ?''', (str(note_id),))
         cursor.close()
         self.connection.commit()
 
@@ -178,16 +178,17 @@ class VacModel:
                              emp_name VARCHAR(100),
                              date VARCHAR(20),
                              link VARCHAR(1000),
+                             salary VARCHAR(50),
                              user_id INTEGER
                              )''')
         cursor.close()
         self.connection.commit()
 
-    def insert(self, vac_id, name, emp_name, date, link, user_id):
+    def insert(self, vac_id, name, emp_name, date, link, salary, user_id):
         cursor = self.connection.cursor()
         cursor.execute('''INSERT INTO vacancies 
-                          (vac_id, name, emp_name, date, link, user_id) 
-                          VALUES (?,?,?,?,?,?)''', (vac_id, name, emp_name, date, link, str(user_id)))
+                          (vac_id, name, emp_name, date, link, salary, user_id) 
+                          VALUES (?,?,?,?,?,?,?)''', (vac_id, name, emp_name, date, link, salary, str(user_id)))
         cursor.close()
         self.connection.commit()
 
@@ -203,7 +204,7 @@ class VacModel:
 
     def delete(self, vac_id):
         cursor = self.connection.cursor()
-        cursor.execute('''DELETE FROM vacancies WHERE id = ?''', (str(vac_id)))
+        cursor.execute('''DELETE FROM vacancies WHERE id = ?''', (str(vac_id),))
         cursor.close()
         self.connection.commit()
 
