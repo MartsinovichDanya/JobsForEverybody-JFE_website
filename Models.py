@@ -11,7 +11,8 @@ class UserModel:
                             (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                              user_name VARCHAR(50),
                              password_hash VARCHAR(128),
-                             admin BOOL
+                             admin BOOL,
+                             email VARCHAR(100)
                              )''')
         cursor.close()
         self.connection.commit()
@@ -24,12 +25,12 @@ class UserModel:
         cursor.close()
         self.connection.commit()
 
-    def insert(self, user_name, password, admin=False):
+    def insert(self, user_name, password, email, admin=False):
         cursor = self.connection.cursor()
         cursor.execute('''INSERT INTO users 
-                          (user_name, password_hash, admin) 
-                          VALUES (?,?,?)''',
-                       (user_name, hashlib.md5(bytes(password, encoding='utf8')).hexdigest(), admin))
+                          (user_name, password_hash, admin, email) 
+                          VALUES (?,?,?,?)''',
+                       (user_name, hashlib.md5(bytes(password, encoding='utf8')).hexdigest(), admin, email))
         cursor.close()
         self.connection.commit()
 

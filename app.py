@@ -6,6 +6,7 @@ from Forms import LoginForm, AddNoteForm, RegistrationForm, ParamForm, MoreButto
 from Models import UserModel, NoteModel, ParamModel, VacModel
 from DB import DB
 from API_kicker import get_vac, count_sred_zp
+from emailer import send_email
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -49,7 +50,8 @@ def registration():
     if form.validate_on_submit():
         user_name = form.username.data
         password = form.password.data
-        user_model.insert(user_name, password)
+        email = form.email.data
+        user_model.insert(user_name, password, email)
         return redirect('/login')
     return render_template('registration.html', title='Регистрация', form=form)
 
@@ -183,10 +185,22 @@ def sred_zp():
     if not pm.get(session['user_id']):
         return redirect('/settings')
     params = pm.get(session['user_id'])
-    data = [params[1], params[2]]
-    data.append(count_sred_zp(params[1], params[2]))
+    data = [params[1], params[2], count_sred_zp(params[1], params[2])]
     return render_template('sred_zp.html', username=session['username'],
                            data=data, title="Рассчет средней З/П")
+
+
+@app.route('/send_mail', methods=['GET'])
+def send_mail():
+    if 'username' not in session:
+        return redirect('/login')
+    um = UserModel(db.get_connection())
+    vm = VacModel(db.get_connection())
+    user_data = um.get(session['user_id'])
+    vacancies = vm.get_all(session['user_id'])
+    text = '\n'.join([f'{el[2]} - {el[5]}' for el in vacancies])
+    send_email(user_data[4], text)
+    return redirect('/index')
 
 
 if __name__ == '__main__':
@@ -194,9 +208,9 @@ if __name__ == '__main__':
         db = DB(DATABASE)
         um = UserModel(db.get_connection())
         um.init_table()
-        um.insert('test1', 'test1')
-        um.insert('test2', 'test2')
-        um.insert('admin', 'admin', True)
+        um.insert('test1', 'test1', '-')
+        um.insert('test2', 'test2', '-')
+        um.insert('admin', 'admin', '-', True)
         nm = NoteModel(db.get_connection())
         nm.init_table()
         pm = ParamModel(db.get_connection())

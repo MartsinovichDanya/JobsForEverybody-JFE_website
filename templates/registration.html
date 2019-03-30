@@ -40,6 +40,15 @@
             {% endfor %}
         </p>
         <p>
+            {{ form.email.label }}<br>
+            {{ form.email }}<br>
+            {% for error in form.email.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
             {{ form.password.label }}<br>
             {{ form.password }}<br>
             {% for error in form.password.errors %}

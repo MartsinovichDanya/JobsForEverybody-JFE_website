@@ -31,9 +31,16 @@ def area_check(form, field):
         raise ValidationError('Такого населенного пункта не существует')
 
 
+def email_check(form, field):
+    if '@' not in field.data or '.' not in field.data:
+        raise ValidationError('Некорректный адрес')
+
+
 class RegistrationForm(FlaskForm):
     username = StringField('Логин', validators=[DataRequired(message='Это обязательное поле'),
                                                 login_unique_check])
+    email = StringField('email', validators=[InputRequired(message='Это обязательное поле'),
+                                             email_check])
     password = PasswordField('Пароль', validators=[InputRequired(message='Это обязательное поле'),
                                                    EqualTo('confirm',
                                                            message='Пароли должны совпадать')])
