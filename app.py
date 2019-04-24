@@ -1,8 +1,7 @@
 from flask import Flask, render_template, redirect, session
-import os.path
 import json
 
-from Forms import LoginForm, AddNoteForm, RegistrationForm, ParamForm, MoreButton, CountButton
+from Forms import LoginForm, AddNoteForm, RegistrationForm, ParamForm, MoreButton
 from Models import UserModel, NoteModel, ParamModel, VacModel
 from DB import DB
 from API_kicker import get_vac, count_sred_zp
@@ -10,7 +9,7 @@ from emailer import send_email
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
-DATABASE = 'jfe.db'
+db = DB('jfe.db')
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -206,19 +205,4 @@ def send_mail():
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DATABASE):
-        db = DB(DATABASE)
-        um = UserModel(db.get_connection())
-        um.init_table()
-        um.insert('test1', 'test1', '-')
-        um.insert('test2', 'test2', '-')
-        um.insert('admin', 'admin', '-', True)
-        nm = NoteModel(db.get_connection())
-        nm.init_table()
-        pm = ParamModel(db.get_connection())
-        pm.init_table()
-        vm = VacModel(db.get_connection())
-        vm.init_table()
-    else:
-        db = DB(DATABASE)
     app.run(port=8080, host='127.0.0.1')

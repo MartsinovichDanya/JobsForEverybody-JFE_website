@@ -57,7 +57,3 @@ class ParamForm(FlaskForm):
 
 class MoreButton(FlaskForm):
     submit = SubmitField('Найти еще')
-
-
-class CountButton(FlaskForm):
-    submit = SubmitField('посчитать среднюю зарплату')
