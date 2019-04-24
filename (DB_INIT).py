@@ -1,4 +1,4 @@
-from Models import UserModel, NoteModel, ParamModel, VacModel
+from Models import UserModel, NoteModel, ParamModel, VacModel, AliceUserModel
 from DB import DB
 
 
@@ -18,7 +18,13 @@ def init_jfe_db():
 
 
 def init_alice_jfe_db():
-    pass
+    db = DB('alice_jfe.db')
+    pm = ParamModel(db.get_connection())
+    pm.init_table()
+    vm = VacModel(db.get_connection())
+    vm.init_table()
+    aum = AliceUserModel(db.get_connection())
+    aum.init_table()
 
 
 init_jfe_db()

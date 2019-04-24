@@ -60,6 +60,56 @@ class UserModel:
         return (True, row[0], row[3]) if row else (False,)
 
 
+class AliceUserModel:
+    def __init__(self, connection):
+        self.connection = connection
+
+    def init_table(self):
+        cursor = self.connection.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS users 
+                            (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                             name VARCHAR(50),
+                             device_id VARCHAR(128),
+                             email VARCHAR(100)
+                             )''')
+        cursor.close()
+        self.connection.commit()
+
+    def insert(self, name, device_id, email):
+        cursor = self.connection.cursor()
+        cursor.execute('''INSERT INTO users 
+                          (name, device_id, email) 
+                          VALUES (?,?,?)''',
+                       (name, device_id, email))
+        cursor.close()
+        self.connection.commit()
+
+    def get(self, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM users WHERE id = ?", (str(user_id)))
+        row = cursor.fetchone()
+        return row
+
+    def get_all(self):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM users")
+        rows = cursor.fetchall()
+        return rows
+
+    def delete(self, user_id):
+        cursor = self.connection.cursor()
+        cursor.execute('''DELETE FROM users WHERE id = ?''', (str(user_id)))
+        cursor.close()
+        self.connection.commit()
+
+    def exists(self, device_id):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM users WHERE device_id = ?",
+                       (device_id,))
+        row = cursor.fetchone()
+        return (True, row[0], row[2]) if row else (False,)
+
+
 class NoteModel:
     def __init__(self, connection):
         self.connection = connection
