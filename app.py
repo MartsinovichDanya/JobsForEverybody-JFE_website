@@ -7,6 +7,8 @@ from DB import DB
 from API_kicker import get_vac, count_sred_zp
 from emailer import send_email
 
+from Alice import main
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 db = DB('jfe.db')
@@ -202,6 +204,9 @@ def send_mail():
     text = '\n'.join([f'{el[2]} - {el[5]}' for el in vacancies])
     send_email(user_data[4], text)
     return redirect('/index')
+
+
+app.route('/post', methods=['POST'])(main)
 
 
 if __name__ == '__main__':

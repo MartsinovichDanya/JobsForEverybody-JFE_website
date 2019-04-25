@@ -67,26 +67,25 @@ class AliceUserModel:
     def init_table(self):
         cursor = self.connection.cursor()
         cursor.execute('''CREATE TABLE IF NOT EXISTS users 
-                            (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                            (user_id VARCHAR(300),
                              name VARCHAR(50),
-                             device_id VARCHAR(128),
                              email VARCHAR(100)
                              )''')
         cursor.close()
         self.connection.commit()
 
-    def insert(self, name, device_id, email):
+    def insert(self, user_id, name, email):
         cursor = self.connection.cursor()
         cursor.execute('''INSERT INTO users 
-                          (name, device_id, email) 
+                          (user_id, name, email) 
                           VALUES (?,?,?)''',
-                       (name, device_id, email))
+                       (user_id, name, email))
         cursor.close()
         self.connection.commit()
 
     def get(self, user_id):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM users WHERE id = ?", (str(user_id)))
+        cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
         row = cursor.fetchone()
         return row
 
@@ -98,16 +97,32 @@ class AliceUserModel:
 
     def delete(self, user_id):
         cursor = self.connection.cursor()
-        cursor.execute('''DELETE FROM users WHERE id = ?''', (str(user_id)))
+        cursor.execute('''DELETE FROM users WHERE user_id = ?''', (user_id,))
         cursor.close()
         self.connection.commit()
 
-    def exists(self, device_id):
+    def exists(self, user_id):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM users WHERE device_id = ?",
-                       (device_id,))
+        cursor.execute("SELECT * FROM users WHERE user_id = ?",
+                       (user_id,))
         row = cursor.fetchone()
         return (True, row[0], row[2]) if row else (False,)
+
+    def update_name(self, user_id, name):
+        cursor = self.connection.cursor()
+        cursor.execute('''UPDATE users SET 
+                                    name = ?
+                                    WHERE user_id = ?''', (name, user_id,))
+        cursor.close()
+        self.connection.commit()
+
+    def update_email(self, user_id, email):
+        cursor = self.connection.cursor()
+        cursor.execute('''UPDATE users SET 
+                                    email = ?,
+                                    WHERE user_id = ?''', (email, user_id,))
+        cursor.close()
+        self.connection.commit()
 
 
 class NoteModel:
