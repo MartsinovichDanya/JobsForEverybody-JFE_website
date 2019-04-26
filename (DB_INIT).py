@@ -19,8 +19,6 @@ def init_jfe_db():
 
 def init_alice_jfe_db():
     db = DB('alice_jfe.db')
-    pm = ParamModel(db.get_connection())
-    pm.init_table()
     vm = VacModel(db.get_connection())
     vm.init_table()
     aum = AliceUserModel(db.get_connection())

@@ -69,17 +69,19 @@ class AliceUserModel:
         cursor.execute('''CREATE TABLE IF NOT EXISTS users 
                             (user_id VARCHAR(300),
                              name VARCHAR(50),
-                             email VARCHAR(100)
+                             email VARCHAR(100),
+                             search_words VARCHAR(1000),
+                             area VARCHAR(1000)
                              )''')
         cursor.close()
         self.connection.commit()
 
-    def insert(self, user_id, name, email):
+    def insert(self, user_id, name, email, search_words, area):
         cursor = self.connection.cursor()
         cursor.execute('''INSERT INTO users 
-                          (user_id, name, email) 
-                          VALUES (?,?,?)''',
-                       (user_id, name, email))
+                          (user_id, name, email, search_words, area) 
+                          VALUES (?,?,?,?,?)''',
+                       (user_id, name, email, search_words, area))
         cursor.close()
         self.connection.commit()
 
@@ -119,8 +121,24 @@ class AliceUserModel:
     def update_email(self, user_id, email):
         cursor = self.connection.cursor()
         cursor.execute('''UPDATE users SET 
-                                    email = ?,
+                                    email = ?
                                     WHERE user_id = ?''', (email, user_id,))
+        cursor.close()
+        self.connection.commit()
+
+    def update_search_words(self, user_id, search_words):
+        cursor = self.connection.cursor()
+        cursor.execute('''UPDATE users SET 
+                                    search_words = ?
+                                    WHERE user_id = ?''', (search_words, user_id,))
+        cursor.close()
+        self.connection.commit()
+
+    def update_area(self, user_id, area):
+        cursor = self.connection.cursor()
+        cursor.execute('''UPDATE users SET 
+                                    area = ?
+                                    WHERE user_id = ?''', (area, user_id,))
         cursor.close()
         self.connection.commit()
 

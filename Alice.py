@@ -5,12 +5,29 @@ import random
 
 
 from DB import DB
-from Models import AliceUserModel, VacModel, ParamModel
+from Models import AliceUserModel, VacModel
 
 app = Flask(__name__)
 db = DB('alice_jfe.db')
 
 logging.basicConfig(level=logging.INFO)
+
+
+def email_validate(email):
+    if '@' in email and '.' in email:
+        return True
+    return False
+
+
+with open("regioni.json", "r") as f:
+    AREAS = json.load(f)
+    VALID_AREAS = AREAS.keys()
+
+
+def find_area_code(area):
+    if area not in VALID_AREAS:
+        return False
+    return AREAS[area]
 
 
 @app.route('/post', methods=['POST'])
@@ -35,8 +52,7 @@ def handle_dialog(res, req):
         res['response']['text'] = '''Привет! Я - Алиса.
                                      Я могу помочь найти тебе работу.
                                      Назови своё имя!'''
-        aum.insert(user_id, None, None)
-        print(aum.get(user_id))
+        aum.insert(user_id, None, None, None, None)
         return
 
     if not aum.get(user_id)[1]:
@@ -45,7 +61,39 @@ def handle_dialog(res, req):
             res['response']['text'] = 'Не расслышала имя. Повтори, пожалуйста!'
         else:
             aum.update_name(user_id, first_name)
-            res['response']['text'] = f'Приятно познакомиться, {first_name.title()}.'
+            res['response']['text'] = f'''Приятно познакомиться, {first_name.title()}.
+                                    Прежде, чем мы начнем, {first_name.title()}, мне нужна кое-какая информация о тебе
+                                    Пожалуйста введи свою почту, слова для поиска вакансий и город,
+                                    в котором ты хочешь найти работу, именно в таком порядке.
+                                    (Пример правильного сообщения - example@example.com, бугалтер, санкт-петербург)'''
+
+    elif not aum.get(user_id)[2]:
+        data = [el.strip().lower() for el in req['request']['original_utterance'].split(',')]
+        if len(data) < 3 or not email_validate(data[0]) or not find_area_code(data[2]):
+            res['response']['text'] = '''Данные введены неправильно.
+                                    (Пример правильного сообщения - example@example.com, бугалтер, санкт-петербург)'''
+        else:
+            aum.update_email(user_id, data[0])
+            aum.update_search_words(user_id, data[1])
+            aum.update_area(user_id, find_area_code(data[2]))
+            print(aum.get(user_id))
+            res['response']['text'] = f'''Поздравляю, {aum.get(user_id)[1].capitalize()}, все готово!
+                                          Поищем что-нибудь?'''
+
+    else:
+        name = aum.get(user_id)[1]
+        res['response']['text'] = f'''Привет, {name}.
+                                      Поищем что-нибудь?'''
+        res['response']['buttons'] = [
+            {
+                'title': 'Да',
+                'hide': True
+            },
+            {
+                'title': 'Нет',
+                'hide': True
+            }
+        ]
 
 #     else:
 #         # У нас уже есть имя, и теперь мы ожидаем ответ на предложение сыграть.
@@ -135,14 +183,15 @@ def handle_dialog(res, req):
 #     # увеличиваем номер попытки доля следующего шага
 #     sessionStorage[user_id]['attempt'] += 1
 #
-#
-# def get_city(req):
-#     # перебираем именованные сущности
-#     for entity in req['request']['nlu']['entities']:
-#         # если тип YANDEX.GEO, то пытаемся получить город(city), если нет, то возвращаем None
-#         if entity['type'] == 'YANDEX.GEO':
-#             # возвращаем None, если не нашли сущности с типом YANDEX.GEO
-#             return entity['value'].get('city', None)
+
+
+def get_city(req):
+    # перебираем именованные сущности
+    for entity in req['request']['nlu']['entities']:
+        # если тип YANDEX.GEO, то пытаемся получить город(city), если нет, то возвращаем None
+        if entity['type'] == 'YANDEX.GEO':
+            # возвращаем None, если не нашли сущности с типом YANDEX.GEO
+            return entity['value'].get('city', None)
 
 
 def get_first_name(req):
