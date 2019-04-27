@@ -294,7 +294,7 @@ class VacModel:
 
     def delete_for_user(self, user_id):
         cursor = self.connection.cursor()
-        cursor.execute('''DELETE FROM vacancies WHERE user_id = ?''', (str(user_id)))
+        cursor.execute('''DELETE FROM vacancies WHERE user_id = ?''', (user_id,))
         cursor.close()
         self.connection.commit()
 
