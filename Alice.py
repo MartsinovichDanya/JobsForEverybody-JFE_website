@@ -1,12 +1,12 @@
 from flask import Flask, request
 import logging
 import json
-import random
 
 
 from DB import DB
 from Models import AliceUserModel, VacModel
 from API_kicker import get_vac
+from emailer import send_email
 
 app = Flask(__name__)
 db = DB('alice_jfe.db')
@@ -46,11 +46,15 @@ def main():
 
 
 settings_flags = {'set_search': False, 'set_area': False, 'set_email': False}
+cur_vac = 0
 
 
 def handle_dialog(res, req):
+    global cur_vac
     user_id = req['session']['user_id']
     aum = AliceUserModel(db.get_connection())
+    vm = VacModel(db.get_connection())
+    vac_count = vm.get_count(user_id) - 1
     if not aum.exists(user_id)[0]:
         res['response']['text'] = '''Привет! Я - Алиса.
                                      Я могу помочь найти тебе работу.
@@ -119,6 +123,20 @@ def handle_dialog(res, req):
             aum.update_search_words(user_id, req['request']['original_utterance'])
             res['response']['text'] = '''Поиск настроен!
                                         Поищем что-нибудь?'''
+            res['response']['buttons'] = [
+                {
+                    'title': 'Да',
+                    'hide': True
+                },
+                {
+                    'title': 'настройки',
+                    'hide': True
+                },
+                {
+                    'title': 'Нет',
+                    'hide': True
+                }
+            ]
             settings_flags['set_search'] = False
 
         if settings_flags['set_email']:
@@ -126,6 +144,20 @@ def handle_dialog(res, req):
             if email_validate(email):
                 res['response']['text'] = '''Почта настроена!
                                             Поищем что-нибудь?'''
+                res['response']['buttons'] = [
+                    {
+                        'title': 'Да',
+                        'hide': True
+                    },
+                    {
+                        'title': 'настройки',
+                        'hide': True
+                    },
+                    {
+                        'title': 'Нет',
+                        'hide': True
+                    }
+                ]
                 aum.update_email(user_id, email)
                 settings_flags['set_email'] = False
             else:
@@ -136,6 +168,20 @@ def handle_dialog(res, req):
             if validate_area(area):
                 res['response']['text'] = '''Город настроен!
                                             Поищем что-нибудь?'''
+                res['response']['buttons'] = [
+                    {
+                        'title': 'Да',
+                        'hide': True
+                    },
+                    {
+                        'title': 'настройки',
+                        'hide': True
+                    },
+                    {
+                        'title': 'Нет',
+                        'hide': True
+                    }
+                ]
                 aum.update_area(user_id, area)
                 settings_flags['set_area'] = False
             else:
@@ -176,7 +222,7 @@ def handle_dialog(res, req):
                 }
             ]
 
-    if 'нет' in req['request']['nlu']['tokens']:
+    if 'нет' in req['request']['nlu']['tokens'] or 'завершить' in req['request']['nlu']['tokens']:
         res['response']['text'] = 'Ну ладно.'
         res['response']['end_session'] = True
 
@@ -185,12 +231,17 @@ def handle_dialog(res, req):
         search = data[3]
         area = data[4]
         vac_list = get_vac(search, area)
-        cur_vac = 0
+        for el in vac_list:
+            vm.insert(*el, user_id=user_id)
         if len(vac_list) == 0:
             res['response']['text'] = 'К сожалению, ничего не найдено.'
             res['response']['buttons'] = [
                 {
                     'title': 'настройки',
+                    'hide': True
+                },
+                {
+                    'title': 'завершить',
                     'hide': True
                 }
             ]
@@ -199,121 +250,114 @@ def handle_dialog(res, req):
             res['response']['text'] = f'''{vac_data[1]}
                                         Работодатель - {vac_data[2]}
                                         Дата публикации - {vac_data[3]}
-                                        Зарплата - {vac_data[5]}
-                                        Ссылка - {vac_data[4]}'''
+                                        Зарплата - {vac_data[5]}'''
             res['response']['buttons'] = [
                 {
                     'title': 'ещё',
                     'hide': True
+                },
+                {
+                    'title': 'перейти на hh.ru',
+                    'hide': True,
+                    'url': vac_data[4]
+                },
+                {
+                    'title': 'завершить',
+                    'hide': True
                 }
             ]
+    if 'ещё' in req['request']['nlu']['tokens']:
+        vac_list = vm.get_all(user_id)
+        cur_vac += 1
+        if cur_vac > vac_count:
+            res['response']['text'] = 'Это пока все. Ты можешь изменить настройки и поискать еще'
+            res['response']['buttons'] = [
+                {
+                    'title': 'настройки',
+                    'hide': True
+                },
+                {
+                    'title': 'отправь на почту',
+                    'hide': True
+                },
+                {
+                    'title': 'отчистить список вакансий',
+                    'hide': True
+                },
+                {
+                    'title': 'завершить',
+                    'hide': True
+                }
+            ]
+            cur_vac = 0
+        else:
+            vac_data = vac_list[cur_vac]
+            res['response']['text'] = f'''{vac_data[2]}
+                                        Работодатель - {vac_data[3]}
+                                        Дата публикации - {vac_data[4]}
+                                        Зарплата - {vac_data[6]}'''
+            res['response']['buttons'] = [
+                {
+                    'title': 'ещё',
+                    'hide': True
+                },
+                {
+                    'title': 'перейти на hh.ru',
+                    'hide': True,
+                    'url': vac_data[5]
+                },
+                {
+                    'title': 'завершить',
+                    'hide': True
+                }
+            ]
+    if req['request']['original_utterance'] == 'перейти на hh.ru':
+        res['response']['text'] = 'ок'
+        res['response']['buttons'] = [
+            {
+                'title': 'ещё',
+                'hide': True
+            },
+            {
+                'title': 'завершить',
+                'hide': True
+            }
+        ]
 
-#     else:
-#         # У нас уже есть имя, и теперь мы ожидаем ответ на предложение сыграть.
-#         # В sessionStorage[user_id]['game_started'] хранится True или False в зависимости от того,
-#         # начал пользователь игру или нет.
-#         if not sessionStorage[user_id]['game_started']:
-#             # игра не начата, значит мы ожидаем ответ на предложение сыграть.
-#             if 'да' in req['request']['nlu']['tokens']:
-#                 # если пользователь согласен, то проверяем не отгадал ли он уже все города.
-#                 # По схеме можно увидеть, что здесь окажутся и пользователи, которые уже отгадывали города
-#                 if len(sessionStorage[user_id]['guessed_cities']) == 3:
-#                     # если все три города отгаданы, то заканчиваем игру
-#                     res['response']['text'] = 'Ты отгадал все города!'
-#                     res['end_session'] = True
-#                 else:
-#                     # если есть неотгаданные города, то продолжаем игру
-#                     sessionStorage[user_id]['game_started'] = True
-#                     # номер попытки, чтобы показывать фото по порядку
-#                     sessionStorage[user_id]['attempt'] = 1
-#                     # функция, которая выбирает город для игры и показывает фото
-#                     play_game(res, req)
-#             elif 'нет' in req['request']['nlu']['tokens']:
-#                 res['response']['text'] = 'Ну и ладно!'
-#                 res['end_session'] = True
-#             else:
-#                 res['response']['text'] = 'Не поняла ответа! Так да или нет?'
-#                 res['response']['buttons'] = [
-#                     {
-#                         'title': 'Да',
-#                         'hide': True
-#                     },
-#                     {
-#                         'title': 'Нет',
-#                         'hide': True
-#                     }
-#                 ]
-#         else:
-#             play_game(res, req)
-#
-#
-# def play_game(res, req):
-#     user_id = req['session']['user_id']
-#     attempt = sessionStorage[user_id]['attempt']
-#     if attempt == 1:
-#         # если попытка первая, то случайным образом выбираем город для гадания
-#         city = random.choice(list(cities))
-#         # выбираем его до тех пор пока не выбираем город, которого нет в sessionStorage[user_id]['guessed_cities']
-#         while city in sessionStorage[user_id]['guessed_cities']:
-#             city = random.choice(list(cities))
-#         # записываем город в информацию о пользователе
-#         sessionStorage[user_id]['city'] = city
-#         # добавляем в ответ картинку
-#         res['response']['card'] = {}
-#         res['response']['card']['type'] = 'BigImage'
-#         res['response']['card']['title'] = 'Что это за город?'
-#         res['response']['card']['image_id'] = cities[city][attempt - 1]
-#         res['response']['text'] = 'Тогда сыграем!'
-#     else:
-#         # сюда попадаем, если попытка отгадать не первая
-#         city = sessionStorage[user_id]['city']
-#         # проверяем есть ли правильный ответ в сообщение
-#         if get_city(req) == city:
-#             # если да, то добавляем город к sessionStorage[user_id]['guessed_cities'] и
-#             # отправляем пользователя на второй круг. Обратите внимание на этот шаг на схеме.
-#             res['response']['text'] = 'Правильно! Сыграем ещё?'
-#             sessionStorage[user_id]['guessed_cities'].append(city)
-#             sessionStorage[user_id]['game_started'] = False
-#             return
-#         else:
-#             # если нет
-#             if attempt == 3:
-#                 # если попытка третья, то значит, что все картинки мы показали.
-#                 # В этом случае говорим ответ пользователю,
-#                 # добавляем город к sessionStorage[user_id]['guessed_cities'] и отправляем его на второй круг.
-#                 # Обратите внимание на этот шаг на схеме.
-#                 res['response']['text'] = f'Вы пытались. Это {city.title()}. Сыграем ещё?'
-#                 sessionStorage[user_id]['game_started'] = False
-#                 sessionStorage[user_id]['guessed_cities'].append(city)
-#                 return
-#             else:
-#                 # иначе показываем следующую картинку
-#                 res['response']['card'] = {}
-#                 res['response']['card']['type'] = 'BigImage'
-#                 res['response']['card']['title'] = 'Неправильно. Вот тебе дополнительное фото'
-#                 res['response']['card']['image_id'] = cities[city][attempt - 1]
-#                 res['response']['text'] = 'А вот и не угадал!'
-#     # увеличиваем номер попытки доля следующего шага
-#     sessionStorage[user_id]['attempt'] += 1
-#
+    if req['request']['original_utterance'] == 'отправь на почту':
+        res['response']['text'] = 'отправлено'
+        res['response']['buttons'] = [
+            {
+                'title': 'настройки',
+                'hide': True
+            },
+            {
+                'title': 'завершить',
+                'hide': True
+            }
+        ]
+        vacancies = vm.get_all(user_id)
+        text = '\n'.join([f'{el[2]} - {el[5]}' for el in vacancies])
+        send_email(aum.get(user_id)[2], text)
 
-
-def get_city(req):
-    # перебираем именованные сущности
-    for entity in req['request']['nlu']['entities']:
-        # если тип YANDEX.GEO, то пытаемся получить город(city), если нет, то возвращаем None
-        if entity['type'] == 'YANDEX.GEO':
-            # возвращаем None, если не нашли сущности с типом YANDEX.GEO
-            return entity['value'].get('city', None)
+    if req['request']['original_utterance'] == 'отчистить список вакансий':
+        res['response']['text'] = 'ок'
+        res['response']['buttons'] = [
+            {
+                'title': 'настройки',
+                'hide': True
+            },
+            {
+                'title': 'завершить',
+                'hide': True
+            }
+        ]
+        vm.delete_for_user(user_id)
 
 
 def get_first_name(req):
-    # перебираем сущности
     for entity in req['request']['nlu']['entities']:
-        # находим сущность с типом 'YANDEX.FIO'
         if entity['type'] == 'YANDEX.FIO':
-            # Если есть сущность с ключом 'first_name', то возвращаем её значение.
-            # Во всех остальных случаях возвращаем None.
             return entity['value'].get('first_name', None)
 
 

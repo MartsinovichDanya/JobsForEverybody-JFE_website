@@ -272,7 +272,7 @@ class VacModel:
         cursor = self.connection.cursor()
         cursor.execute('''INSERT INTO vacancies 
                           (vac_id, name, emp_name, date, link, salary, user_id) 
-                          VALUES (?,?,?,?,?,?,?)''', (vac_id, name, emp_name, date, link, salary, str(user_id)))
+                          VALUES (?,?,?,?,?,?,?)''', (vac_id, name, emp_name, date, link, salary, user_id))
         cursor.close()
         self.connection.commit()
 
@@ -280,7 +280,7 @@ class VacModel:
         cursor = self.connection.cursor()
         if user_id:
             cursor.execute("SELECT * FROM vacancies WHERE user_id = ?",
-                           (str(user_id)))
+                           (user_id,))
         else:
             cursor.execute("SELECT * FROM vacancies")
         rows = cursor.fetchall()
@@ -302,7 +302,7 @@ class VacModel:
         cursor = self.connection.cursor()
         if user_id:
             cursor.execute("SELECT COUNT(*) FROM vacancies WHERE user_id = ?",
-                           (str(user_id)))
+                           (user_id,))
         else:
             cursor.execute("SELECT COUNT(*) FROM vacancies")
         rows = cursor.fetchone()

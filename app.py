@@ -98,7 +98,7 @@ def settings():
         vm = VacModel(db.get_connection())
         vac_list = get_vac(search_words, search_area)
         for el in vac_list:
-            vm.insert(*el, user_id=session['user_id'])
+            vm.insert(*el, user_id=str(session['user_id']))
         return redirect('/index')
     return render_template('settings.html', title='Настройки поиска', form=form)
 
@@ -113,16 +113,16 @@ def index():
     if not pm.get(session['user_id']):
         return redirect('/settings')
     vm = VacModel(db.get_connection())
-    vacancies_list = vm.get_all(session['user_id'])
+    vacancies_list = vm.get_all(str(session['user_id']))
     vacancies_list = sorted(vacancies_list, key=lambda n: -int(n[4].replace('-', '')))
     print(vacancies_list)
     if form.validate_on_submit():
         params = pm.get(session['user_id'])
         vac_list = get_vac(params[1], params[2])
-        exist_vac = [el[1] for el in vm.get_all(session['user_id'])]
+        exist_vac = [el[1] for el in vm.get_all(str(session['user_id']))]
         for el in vac_list:
             if int(el[0]) not in exist_vac:
-                vm.insert(*el, user_id=session['user_id'])
+                vm.insert(*el, user_id=str(session['user_id']))
         return redirect('/index')
     return render_template('index.html', username=session['username'],
                            vacancies=vacancies_list, title="Главная", form=form)
@@ -200,7 +200,7 @@ def send_mail():
     um = UserModel(db.get_connection())
     vm = VacModel(db.get_connection())
     user_data = um.get(session['user_id'])
-    vacancies = vm.get_all(session['user_id'])
+    vacancies = vm.get_all(str(session['user_id']))
     text = '\n'.join([f'{el[2]} - {el[5]}' for el in vacancies])
     send_email(user_data[4], text)
     return redirect('/index')
