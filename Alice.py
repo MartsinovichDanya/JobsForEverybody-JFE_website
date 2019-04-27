@@ -6,6 +6,7 @@ import random
 
 from DB import DB
 from Models import AliceUserModel, VacModel
+from API_kicker import get_vac
 
 app = Flask(__name__)
 db = DB('alice_jfe.db')
@@ -20,14 +21,13 @@ def email_validate(email):
 
 
 with open("regioni.json", "r") as f:
-    AREAS = json.load(f)
-    VALID_AREAS = AREAS.keys()
+    VALID_AREAS = json.load(f).keys()
 
 
-def find_area_code(area):
+def validate_area(area):
     if area not in VALID_AREAS:
         return False
-    return AREAS[area]
+    return True
 
 
 @app.route('/post', methods=['POST'])
@@ -43,6 +43,9 @@ def main():
     handle_dialog(response, request.json)
     logging.info('Response: %r', response)
     return json.dumps(response)
+
+
+settings_flags = {'set_search': False, 'set_area': False, 'set_email': False}
 
 
 def handle_dialog(res, req):
@@ -69,13 +72,13 @@ def handle_dialog(res, req):
 
     elif not aum.get(user_id)[2]:
         data = [el.strip().lower() for el in req['request']['original_utterance'].split(',')]
-        if len(data) < 3 or not email_validate(data[0]) or not find_area_code(data[2]):
+        if len(data) < 3 or not email_validate(data[0]) or not validate_area(data[2]):
             res['response']['text'] = '''Данные введены неправильно.
                                     (Пример правильного сообщения - example@example.com, бухгалтер, санкт-петербург)'''
         else:
             aum.update_email(user_id, data[0])
             aum.update_search_words(user_id, data[1])
-            aum.update_area(user_id, find_area_code(data[2]))
+            aum.update_area(user_id, data[2])
             res['response']['text'] = f'''Поздравляю, {aum.get(user_id)[1].capitalize()}, все готово!
                                           Поищем что-нибудь?
                                           (чтобы поменять настройки напиши - настройки)'''
@@ -95,7 +98,7 @@ def handle_dialog(res, req):
             ]
 
     else:
-        if 'настройки' in req['request']['nlu']['tokens']:
+        if req['request']['original_utterance'] == 'настройки':
             res['response']['text'] = 'Выбери один из вариантов'
             res['response']['buttons'] = [
                 {
@@ -112,68 +115,98 @@ def handle_dialog(res, req):
                 }
             ]
 
-        set_search = False
-        set_email = False
-        set_area = False
-
-        if set_search:
+        if settings_flags['set_search']:
             aum.update_search_words(user_id, req['request']['original_utterance'])
-            res['response']['text'] = 'Поиск настроен!'
-            set_search = False
+            res['response']['text'] = '''Поиск настроен!
+                                        Поищем что-нибудь?'''
+            settings_flags['set_search'] = False
 
-        if set_email:
+        if settings_flags['set_email']:
             email = req['request']['original_utterance']
             if email_validate(email):
-                res['response']['text'] = 'Почта настроена!'
-                aum.update_email(user_id, email_validate())
-                set_email = False
+                res['response']['text'] = '''Почта настроена!
+                                            Поищем что-нибудь?'''
+                aum.update_email(user_id, email)
+                settings_flags['set_email'] = False
             else:
-                res['response']['text'] = 'Некоректный адрес почты! Попробуй еще раз.'
+                res['response']['text'] = 'Некорректный адрес почты! Попробуй еще раз.'
 
-        if set_area:
-            area = find_area_code(req['request']['original_utterance'])
-            if area:
-                res['response']['text'] = 'Город настроен!'
-                aum.update_area(area)
-                set_area = False
+        if settings_flags['set_area']:
+            area = req['request']['original_utterance'].lower()
+            if validate_area(area):
+                res['response']['text'] = '''Город настроен!
+                                            Поищем что-нибудь?'''
+                aum.update_area(user_id, area)
+                settings_flags['set_area'] = False
             else:
                 res['response']['text'] = 'Такого города нет.'
 
         if req['request']['original_utterance'] == 'Настроить поиск':
             res['response']['text'] = 'введи ключевые слова для поиска'
-            set_search = True
+            settings_flags['set_search'] = True
             res['response']['buttons'] = []
 
         elif req['request']['original_utterance'] == 'Настроить почту':
             res['response']['text'] = 'введи почту'
-            set_email = True
+            settings_flags['set_email'] = True
             res['response']['buttons'] = []
 
         elif req['request']['original_utterance'] == 'Настроить город':
             res['response']['text'] = 'введи город'
-            set_area = True
+            settings_flags['set_area'] = True
             res['response']['buttons'] = []
 
-        name = aum.get(user_id)[1]
-        res['response']['text'] = f'''Привет, {name.capitalize()}.
-                                              Поищем что-нибудь?
-                                              (чтобы поменять настройки напиши - настройки)'''
-        res['response']['buttons'] = [
-            {
-                'title': 'Да',
-                'hide': True
-            },
-            {
-                'title': 'Нет',
-                'hide': True
-            },
-            {
-                'title': 'настройки',
-                'hide': True
-            }
-        ]
+        if req['request']['original_utterance'] == '':
+            name = aum.get(user_id)[1]
+            res['response']['text'] = f'''Привет, {name.capitalize()}.
+                                                  Поищем что-нибудь?
+                                                  (чтобы поменять настройки напиши - настройки)'''
+            res['response']['buttons'] = [
+                {
+                    'title': 'Да',
+                    'hide': True
+                },
+                {
+                    'title': 'Нет',
+                    'hide': True
+                },
+                {
+                    'title': 'настройки',
+                    'hide': True
+                }
+            ]
 
-    # if 'да' in req['request']['nlu']['tokens']:
+    if 'нет' in req['request']['nlu']['tokens']:
+        res['response']['text'] = 'Ну ладно.'
+        res['response']['end_session'] = True
+
+    if 'да' in req['request']['nlu']['tokens']:
+        data = aum.get(user_id)
+        search = data[3]
+        area = data[4]
+        vac_list = get_vac(search, area)
+        cur_vac = 0
+        if len(vac_list) == 0:
+            res['response']['text'] = 'К сожалению, ничего не найдено.'
+            res['response']['buttons'] = [
+                {
+                    'title': 'настройки',
+                    'hide': True
+                }
+            ]
+        else:
+            vac_data = vac_list[cur_vac]
+            res['response']['text'] = f'''{vac_data[1]}
+                                        Работодатель - {vac_data[2]}
+                                        Дата публикации - {vac_data[3]}
+                                        Зарплата - {vac_data[5]}
+                                        Ссылка - {vac_data[4]}'''
+            res['response']['buttons'] = [
+                {
+                    'title': 'ещё',
+                    'hide': True
+                }
+            ]
 
 #     else:
 #         # У нас уже есть имя, и теперь мы ожидаем ответ на предложение сыграть.
