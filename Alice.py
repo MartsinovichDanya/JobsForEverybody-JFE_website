@@ -71,19 +71,93 @@ def handle_dialog(res, req):
         data = [el.strip().lower() for el in req['request']['original_utterance'].split(',')]
         if len(data) < 3 or not email_validate(data[0]) or not find_area_code(data[2]):
             res['response']['text'] = '''Данные введены неправильно.
-                                    (Пример правильного сообщения - example@example.com, бугалтер, санкт-петербург)'''
+                                    (Пример правильного сообщения - example@example.com, бухгалтер, санкт-петербург)'''
         else:
             aum.update_email(user_id, data[0])
             aum.update_search_words(user_id, data[1])
             aum.update_area(user_id, find_area_code(data[2]))
-            print(aum.get(user_id))
             res['response']['text'] = f'''Поздравляю, {aum.get(user_id)[1].capitalize()}, все готово!
-                                          Поищем что-нибудь?'''
+                                          Поищем что-нибудь?
+                                          (чтобы поменять настройки напиши - настройки)'''
+            res['response']['buttons'] = [
+                {
+                    'title': 'Да',
+                    'hide': True
+                },
+                {
+                    'title': 'Нет',
+                    'hide': True
+                },
+                {
+                    'title': 'настройки',
+                    'hide': True
+                }
+            ]
 
     else:
+        if 'настройки' in req['request']['nlu']['tokens']:
+            res['response']['text'] = 'Выбери один из вариантов'
+            res['response']['buttons'] = [
+                {
+                    'title': 'Настроить поиск',
+                    'hide': True
+                },
+                {
+                    'title': 'Настроить город',
+                    'hide': True
+                },
+                {
+                    'title': 'Настроить почту',
+                    'hide': True
+                }
+            ]
+
+        set_search = False
+        set_email = False
+        set_area = False
+
+        if set_search:
+            aum.update_search_words(user_id, req['request']['original_utterance'])
+            res['response']['text'] = 'Поиск настроен!'
+            set_search = False
+
+        if set_email:
+            email = req['request']['original_utterance']
+            if email_validate(email):
+                res['response']['text'] = 'Почта настроена!'
+                aum.update_email(user_id, email_validate())
+                set_email = False
+            else:
+                res['response']['text'] = 'Некоректный адрес почты! Попробуй еще раз.'
+
+        if set_area:
+            area = find_area_code(req['request']['original_utterance'])
+            if area:
+                res['response']['text'] = 'Город настроен!'
+                aum.update_area(area)
+                set_area = False
+            else:
+                res['response']['text'] = 'Такого города нет.'
+
+        if req['request']['original_utterance'] == 'Настроить поиск':
+            res['response']['text'] = 'введи ключевые слова для поиска'
+            set_search = True
+            res['response']['buttons'] = []
+
+        elif req['request']['original_utterance'] == 'Настроить почту':
+            res['response']['text'] = 'введи почту'
+            set_email = True
+            res['response']['buttons'] = []
+
+        elif req['request']['original_utterance'] == 'Настроить город':
+            res['response']['text'] = 'введи город'
+            set_area = True
+            res['response']['buttons'] = []
+
         name = aum.get(user_id)[1]
-        res['response']['text'] = f'''Привет, {name}.
-                                      Поищем что-нибудь?'''
+        res['response']['text'] = f'''Привет, {name.capitalize()}.
+                                              Поищем что-нибудь?
+                                              (чтобы поменять настройки напиши - настройки)'''
         res['response']['buttons'] = [
             {
                 'title': 'Да',
@@ -92,8 +166,14 @@ def handle_dialog(res, req):
             {
                 'title': 'Нет',
                 'hide': True
+            },
+            {
+                'title': 'настройки',
+                'hide': True
             }
         ]
+
+    # if 'да' in req['request']['nlu']['tokens']:
 
 #     else:
 #         # У нас уже есть имя, и теперь мы ожидаем ответ на предложение сыграть.
